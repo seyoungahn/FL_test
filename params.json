@@ -14,7 +14,7 @@
     "t_lr_scheduler": 0,
     "t_momentum": 0.9,
     "t_weight_decay": 5e-4,
-    "t_batch_size": 64,
+    "t_batch_size": 16,
     "t_num_rounds": 100,
     "t_dropout_rate": 0.5,
     "t_num_channels": 32,

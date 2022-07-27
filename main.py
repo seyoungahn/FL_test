@@ -110,15 +110,6 @@ def FedAvg(global_model, models, data_sizes):
         aggregated_dict[name].data.copy_(sum([beta[i] * parties_dict[i][name].data for i in range(len(models))]))
     return aggregated_dict
 
-def weight_difference(model_1, model_2):
-    model_dict = dict(model_1.state_dict())
-    difference_dict = dict(model_2.state_dict())
-    model_1_dict = dict(model_1.state_dict())
-    model_2_dict = dict(model_2.state_dict())
-    for name, param in model_dict.items():
-        difference_dict[name].data.copy_(model_1_dict[name].data - model_2_dict[name].data)
-    return difference_dict
-
 # Hyperparameter setting
 json_path = os.path.join("params.json")
 assert os.path.isfile(json_path), "No JSON configuration file found at {}".format(json_path)
@@ -163,6 +154,7 @@ for epoch in tqdm(range(100), desc='EPOCHS'):
     ## Federated learning
     logging.info("+ FEDERATED LEARNING")
     for i in range(params.n_users):
+        models[i].load_state_dict(global_model.state_dict())
         logging.info("  - LOCAL TRAINING (user #{})...".format(i+1))
         train_metrics = train(models[i], optimizers[i], utils.loss_function, trainloader_nIID[i], utils.metrics, params)
 
@@ -185,4 +177,4 @@ for epoch in tqdm(range(100), desc='EPOCHS'):
     ## Weight difference
     wd = sum(torch.norm(p - q, 2) for p, q in zip(global_model.parameters(), centralized_model.parameters()))
     logging.info("Weight difference: {}".format(wd.item()))
-    utils.write_csv(".", "perf", [epoch+1, global_acc, global_loss, centralized_acc, centralized_loss, wd], ['Epochs', 'Acc(global)', 'Loss(global)', 'Acc(central)', 'Loss(central)', 'Weight difference'])
+    utils.write_csv(".", "perf", [epoch+1, global_acc, global_loss, centralized_acc, centralized_loss, wd.item()], ['Epochs', 'Acc(global)', 'Loss(global)', 'Acc(central)', 'Loss(central)', 'Weight difference'])
